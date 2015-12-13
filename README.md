@@ -1,5 +1,11 @@
 # kutil
-Chef knife utility script. Simple script to help to utilize the power of the chef index in daily work.
+Chef knife utility script. Simple script to help to utilize the power of the chef index in daily work. Finding information is normally behind lengthy knife search commands. kutil helps to shorten the effort and give a "toolbox" to get information fast. I addition kutil works nicely for Oracle databases environments, if you use the https://github.com/aririikonen/oracle cookbook. For example with:
+
+```
+kutil -cs <SID>
+```
+
+You can easily login with ssh to databases using the database name instead of trying to figure out which FQDN the database has.
 
 # Setup
 Change the CHEF_HOME variable to match your chef repo home.

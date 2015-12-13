@@ -1,0 +1,210 @@
+#!/bin/bash
+# Knife utility
+# Ari Riikonen 26.11.2015
+#
+# Description:
+# A script designed to make chef index usage easier. Script doesn't require in-depth
+# knife command line interface knowledge to be able to find information from chef.
+#
+# ChangeLog:
+# 26.11.2015	1.0.0	Initial release
+# 1.12.2015	1.0.1	Fixed an issue with multiple databases and -cs option
+# 1.12.2015	1.0.1	Execution logging to /var/tmp/kutil_exec.log
+# 1.12.2015	1.0.2	Execution logging to /var/tmp/kutil_exec.log
+# 3.12.2015	1.0.3	Added -v option
+
+# Setting variables
+# Remember to set the correct CHEF_HOME
+VERSION="kutil 1.0.3"
+VERSION_DATE="3.12.2015"
+OPTION=$1
+VAR=$2
+CHEF_HOME=~/chef
+cd $CHEF_HOME
+
+# Execution logging
+echo "`date` $USER $1 $2" >> /var/tmp/kutil_exec.log
+
+# Print usage
+usage() {
+        echo "$VERSION $VERSION_DATE"
+        echo "Usage:    kutil <OPTION> <VAR>"
+        echo "Where:    <OPTION>, see below"
+        echo "          <VAR>	 = Variable input (=string or part of it)"
+        echo "Options:  -f, -fj  = FQDN, -fj in JSON format"
+        echo "          -n, -nj  = Node name, -nj in JSON format"
+        echo "          -e, -ej  = Environment, -ej in JSON format"
+        echo "          -rl, -rlj  = Run_list, -rj in JSON format"
+        echo "          -ro, -roj  = Role, -rj in JSON format"
+        echo "          -re      = FQDN, show resources from the node"
+        echo "          -el      = Search for an environment"
+        echo "          -s, -sj  = Oracle SID, -sj in JSON format"
+        echo "          -so      = Oracle SID with OHAI time"
+        echo "          -sl      = Oracle SID, long output"
+        echo "          -i, -ij  = IP address, -ij in JSON format"
+        echo "          -cs      = Connect to the Oracle SID host with ssh"
+        echo "          -cn      = Connect to the node with ssh"
+        echo "          -st      = Knife status, status of the nodes"
+        echo "          -sh      = Knife status -H, nodes which are not updating to chef-server"
+        echo "          -h       = Print usage"
+        echo "          -v       = Print version"
+}
+
+# Checkup to have at least two input parameters
+if ! [ "$OPTION" = "-st" ]; then
+  if ! [ "$OPTION" = "-sh" ]; then
+    if ! [ "$OPTION" = "-v" ]; then
+      if [ -z $VAR ]; then
+        echo "ERROR: VAR is empty"
+        usage
+        exit 1
+      fi
+    fi
+  fi
+fi
+
+# Print version
+echo "Version $VERSION $VERSION_DATE"
+
+case $OPTION in
+	-f)
+		list=`knife search node fqdn:*$VAR* -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-fj)
+		list=`knife search node fqdn:*$VAR* -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-n)
+		list=`knife search node name:*$VAR* -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-nj)
+		list=`knife search node name:*$VAR* -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-e)
+		list=`knife search node chef_environment:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-ej)
+		list=`knife search node chef_environment:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-rl)
+		list=`knife search node run_list:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-rlj)
+		list=`knife search node run_list:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-ro)
+		list=`knife search node role:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-roj)
+		list=`knife search node role:*$VAR* -a chef_environment -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-re)
+		list=`knife search node fqdn:*$VAR* -a cpu.total -a memory.total -a oracle.rdbms.dbs -a fqdn -a name -a ipaddress -a run_list -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-el)
+		list=`knife environment list | grep -i $VAR`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-so)
+		list=`knife search node oracle_rdbms_dbs:*$VAR* -a platform_version -a oracle.rdbms.dbs -a oracle.rdbms.install_info.version_str -a oracle.rdbms.install_info.timestamp_str -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags`
+		otime=`knife search node oracle_rdbms_dbs:*$VAR* -a ohai_time | grep "ohai_time:" | awk '{print $2}'`
+    dtime=`date -d @$otime`
+		echo "Information from $VAR:"
+		echo "$list"
+    echo "  Ohai time:                               $dtime"
+		;;
+	-s)
+		list=`knife search node oracle_rdbms_dbs:*$VAR* -a platform_version -a oracle.rdbms.dbs -a oracle.rdbms.install_info.version_str -a oracle.rdbms.install_info.timestamp_str -a oracle.rdbms.install_info.patch_nr -a fqdn -a name -a ipaddress -a run_list -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-sl)
+		list=`knife search node oracle_rdbms_dbs:*$VAR* -a platform_version -a oracle.rdbms.dbs -a oracle.rdbms.install_info.version_str -a oracle.rdbms.install_info.timestamp_str -a oracle.rdbms.install_info.patch_nr -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-sj)
+		list=`knife search node oracle_rdbms_dbs:*$VAR* -a platform_version -a oracle.rdbms.dbs -a oracle.rdbms.install_info.version_str -a oracle.rdbms.install_info.timestamp_str -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-i)
+		list=`knife search node "ipaddress:*$VAR* AND name:*_db*" -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-ij)
+		list=`knife search node "ipaddress:*$VAR* AND name:*_db*" -a oracle.rdbms.is_installed -a fqdn -a name -a ipaddress -a run_list -a roles -a chef_environment -a platform_version -a tags -Fj`
+		echo "Information from $VAR:"
+		echo "$list"
+		;;
+	-cs)	
+		hostn=`knife search node oracle_rdbms_dbs:$VAR | grep FQDN | awk '{print $2}'`
+		hostn_arr=( $hostn )
+		lines=`echo ${#hostn_arr[@]}`
+		if [ "$lines" -gt "1" ]; then
+			num=0
+			echo "Multiple $VAR databases:"
+			for i in "${hostn_arr[@]}"; do
+				echo "  ${num}. $i"
+				num=$(($num + 1))
+			done
+			echo "Which one would you like to connect to? "
+			read answer
+			hostn=${hostn_arr[$answer]}
+		fi
+		echo "Hostname for $VAR: $hostn"
+		echo "Connecting..."
+		ssh $hostn
+    		;;
+	-cn)	
+		hostn=`knife search node name:$VAR | grep FQDN | awk '{print $2}'`
+		echo "Hostname for $VAR: $hostn"
+		echo "Connecting..."
+		ssh $hostn
+		;;
+	-st)	
+		list=`knife status`
+		echo "Knife status information"
+		echo "$list"
+		;;
+	-sh)	
+		list=`knife status -H`
+		echo "Knife status information for nodes which haven't connected to the server."
+		echo "$list"
+		;;
+	-h)	
+		usage
+		;;
+	-v)	
+		;;
+  *)
+    echo "ERROR: $OPTION is not a valid OPTION"
+		usage
+    exit 1
+    ;;
+esac
+
+# End of script

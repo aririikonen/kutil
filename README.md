@@ -4,12 +4,14 @@ Chef knife utility script. Simple script to help to utilize the power of the che
 # Setup
 Change the CHEF_HOME variable to match your chef repo home.
 
- ...
- CHEF_HOME=~/chef
- ...
-
+```
+...
+CHEF_HOME=~/chef
+...
+```
 
 # Usage
+```
 kutil 1.0.3 3.12.2015
 Usage:    kutil <OPTION> <VAR>
 Where:    <OPTION>, see below
@@ -31,3 +33,4 @@ Options:  -f, -fj  = FQDN, -fj in JSON format
           -sh      = Knife status -H, nodes which are not updating to chef-server
           -h       = Print usage
           -v       = Print version
+```
